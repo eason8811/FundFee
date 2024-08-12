@@ -26,7 +26,7 @@ class BinanceAPI:
             'Connection': 'close',
             'X-MBX-APIKEY': self.api_key,
         }
-        if method != 'GET':
+        if request_path != '/dapi/v1/depth' and request_path != '/api/v3/depth':
             body['signature'] = hmac.new(self.secret_key.encode('utf-8'), param2string(body).encode('utf-8'),
                                          hashlib.sha256).hexdigest()
         if method == 'GET':
