@@ -40,7 +40,7 @@ while True:
                          + float(buy2[0]) * ((fund - float(buy1[1]) * 10) / fund))
         if float(sell1[1]) * float(sell1[0]) >= fund:
             sell_price = float(sell1[0])
-        if buy_price != 0 and sell_price != 0 and (buy_price - sell_price) / sell_price * 100 > 0.16:
+        if buy_price != 0 and sell_price != 0 and (buy_price - sell_price) / sell_price * 100 > 0.1:
             print(f'\n\n有机会！{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}')
             print(f'币本位\tbuy1: {buy1}, buy2: {buy2}  现货\tsell1: {sell1}, sell2: {sell2}'
                   f'\t{(buy_price - sell_price) / sell_price * 100 if buy_price != 0 and sell_price != 0 else 0}%')
