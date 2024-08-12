@@ -1,24 +1,27 @@
 import asyncio
-import websockets
 import json
+import time
+
+from BinanceAPI import BinanceAPI
 
 
-async def connect_to_wss(uri):
-    # 连接到WSS服务器
-    async with websockets.connect(uri) as websocket:
-        # 执行一些操作，例如发送和接收消息
-        # data = {}
-        # await websocket.send(json.dumps(data))
-        while 1:
-            response = await websocket.recv()
-            buy1 = json.loads(response)['b'][0]
-            buy2 = json.loads(response)['b'][1]
-            print(f'\rbuy1: {buy1} buy2: {buy2}', end='')
+base_url_spot = 'https://api.binance.com'
+base_url_coin = 'https://dapi.binance.com'
+api_key = 'i7F6rx3Tcz6eJlSVzBc4dpV6qyszCiCOIpSz7gv9mdyq9UjVizrlu2kkmlvUIJSw'
+secret_key = 'mwU7KCworFZ17WIOqRuGaRmtwT3nnUDBhtg8HQf9CHFB7KVSxev0Rwym5mgfWjDx'
 
+spot_api = BinanceAPI(base_url_spot, api_key, secret_key)
+coin_api = BinanceAPI(base_url_coin, api_key, secret_key)
 
-# WSS服务器地址，包含协议
-wss_url = "wss://dstream.binance.com/ws/wifusd_perp@depth5"
+symbols = ['WIFUSD_PERP']
 
-# 运行异步事件循环
-loop = asyncio.get_event_loop()
-loop.run_until_complete(connect_to_wss(wss_url))
+for symbol in symbols:
+    body = {
+        'type': 'MAIN_CMFUTURE',
+        'asset': 'EOS',
+        'amount': 0.4,
+        'timestamp': int(time.mktime(time.localtime()))*1000,
+    }
+
+    response = spot_api.api('POST', '/sapi/v1/asset/transfer', body)
+    print(response)
