@@ -40,46 +40,69 @@ while True:
                          + float(buy2[0]) * ((fund - float(buy1[1]) * 10) / fund))
         if float(sell1[1]) * float(sell1[0]) >= fund:
             sell_price = float(sell1[0])
-        if buy_price != 0 and sell_price != 0 and (sell_price - buy_price) / buy_price * 100 > 0.15:
+        if buy_price != 0 and sell_price != 0 and (buy_price - sell_price) / sell_price * 100 > 0.16:
             print(f'\n\n有机会！{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}')
             print(f'币本位\tbuy1: {buy1}, buy2: {buy2}  现货\tsell1: {sell1}, sell2: {sell2}'
-                  f'\t{(sell_price - buy_price) / buy_price * 100 if buy_price != 0 and sell_price != 0 else 0}%')
-            print(f'买价: {buy_price}, 卖价: {sell_price}\n')
+                  f'\t{(buy_price - sell_price) / sell_price * 100 if buy_price != 0 and sell_price != 0 else 0}%')
+            print(f'买价: {sell_price}, 卖价: {buy_price}\n')
 
             body = {
                 'symbol': symbol.replace('_PERP', 'T'),
                 'side': 'BUY',
                 'type': 'MARKET',
-                'quantity': round(fund / sell1, 2),
+                'quantity': round(fund / sell_price, 2),
                 'newOrderRespType': 'RESULT',
                 'timestamp': int(time.mktime(time.localtime())) * 1000,
             }
             response = spot_api.api('POST', '/api/v3/order', body)
             print(response)
-            real_buy_price = float(response['price'])
-            real_buy_quantity = float(response['executedQty'])
+            buy_spot_order_id = response['orderId']
+            real_buy_quantity = float(response['executedQty']) * (1 - 0.001)
 
-            body = {
-                'type': 'MAIN_CMFUTURE',
-                'asset': symbol.replace('USD_PERP', ''),
-                'amount': real_buy_quantity,
-                'timestamp': int(time.mktime(time.localtime())) * 1000,
-            }
+            while True:
+                body = {
+                    'type': 'MAIN_CMFUTURE',
+                    'asset': symbol.replace('USD_PERP', ''),
+                    'amount': real_buy_quantity,
+                    'timestamp': int(time.mktime(time.localtime())) * 1000,
+                }
 
-            response = spot_api.api('POST', '/sapi/v1/asset/transfer', body)
-            print(response)
+                response = spot_api.api('POST', '/sapi/v1/asset/transfer', body)
+                print(response)
+                if response.get('tranId') is not None:
+                    break
 
             body = {
                 'symbol': symbol,
                 'side': 'SELL',
                 'positionSide': 'SHORT',
                 'type': 'MARKET',
-                'quantity': int(real_buy_quantity*real_buy_price/10),
+                'quantity': int(real_buy_quantity * sell_price / 10),
                 'timestamp': int(time.mktime(time.localtime())) * 1000,
             }
 
             response = coin_api.api('POST', '/dapi/v1/order', body)
             print(response)
+            sell_coin_order_id = response['orderId']
+
+            body = {
+                'symbol': symbol.replace('_PERP', 'T'),
+                'orderId': buy_spot_order_id,
+                'timestamp': int(time.mktime(time.localtime())) * 1000,
+            }
+            response = spot_api.api('GET', '/api/v3/order', body)
+            buy_spot_price = float(response['price'])
+
+            body = {
+                'symbol': symbol,
+                'orderId': sell_coin_order_id,
+                'timestamp': int(time.mktime(time.localtime())) * 1000,
+            }
+            response = coin_api.api('GET', '/dapi/v1/order', body)
+            sell_coin_price = float(response['avgPrice'])
+
+            print(f'实际成交价差：{round((sell_coin_price - buy_spot_price) / buy_spot_order_id * 100, 4)}%')
+            break
 
         print(f'\r币本位\tbuy1: {buy1}, buy2: {buy2}  现货\tsell1: {sell1}, sell2: {sell2}'
-              f'\t{(sell_price - buy_price) / buy_price * 100 if buy_price != 0 and sell_price != 0 else 0}%', end='')
+              f'\t{(buy_price - sell_price) / sell_price * 100 if buy_price != 0 and sell_price != 0 else 0}%', end='')
