@@ -6,15 +6,15 @@ api_key = 'i7F6rx3Tcz6eJlSVzBc4dpV6qyszCiCOIpSz7gv9mdyq9UjVizrlu2kkmlvUIJSw'
 secret_key = 'mwU7KCworFZ17WIOqRuGaRmtwT3nnUDBhtg8HQf9CHFB7KVSxev0Rwym5mgfWjDx'
 
 binance = BinanceAPI(base_url, api_key, secret_key)
-symbols = ['WIFUSD_PERP', 'EOSUSD_PERP']
+symbols = ['WIFUSD_PERP', 'EOSUSD_PERP', 'SOLUSD_PERP', 'LTCUSD_PERP', 'ADAUSD_PERP']
 
 fee_list = []
 for symbol in symbols:
     body = {
         'symbol': symbol,
-        'limit': 100
+        'limit': 78
     }
-    response = binance.IO('GET', '/dapi/v1/fundingRate', body)
+    response = binance.api('GET', '/dapi/v1/fundingRate', body)
     fee_list.append(response)
 print(fee_list)
 fee_line = {}
@@ -23,5 +23,7 @@ for i in range(len(symbols)):
 
 for symbol, data in fee_line.items():
     plt.plot(data, label=symbol)
+    print(len(data))
+
 plt.legend(loc='best')
 plt.show()
