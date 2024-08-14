@@ -118,6 +118,7 @@ while True:
         print(f'\n出现错误：{type(e)} : {e}\n时间：{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}\n')
 
 
+# 2024-08-14
 # 791.6667    12.0374     11.9453
 # 1.68        1.6615      1.6743
 #
