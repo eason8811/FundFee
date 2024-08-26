@@ -24,3 +24,11 @@ for symbol in symbols:
 
     print(fund_fee_list)
     print(f'总额为 {round(sum(fund_fee_list), 9)}')
+
+    body = {
+        'symbol': symbol,
+    }
+    respond = coin_api.api('GET', '/dapi/v1/ticker/price', body)
+    now_price = float(respond[0]['price'])
+    print(f'当前价格为 {now_price}')
+    print(f'净收益为 {round(sum(fund_fee_list) * now_price, 9)}')
